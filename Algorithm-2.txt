@@ -1,0 +1,143 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Input: An ordered set S with a number k
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Output: The kth integrability quantity
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Gpolynomial:=proc(k,S)  
+local Gnumbers,Nlist,ListK,Vmonimal,VNumbers,l,A,ww,i,KK,Q,kk;  
+global V,a,b,c,z;    
+
+Nlist:=proc(n,m)  
+local U,t,U0,u,i,S1,u1;    
+U:={seq([i],i=0..m)}:  for t from 1 to n-1 do    U0:={}:  
+for u in U do  for i from 0 to m-sum(op(j,u),j=1..t) do  
+U0:=U0 union {[op(u),i]}:   od: od:  U:=U0; od:    
+S1:={}:   for u1 in U do   if verify(sum(op(j,u1),j=1..n)-m,0,equal)    
+then S1:=S1 union {u1} end if;    od; 
+return S1; end proc:
+
+ListK:=proc(k,S)  
+local Nlist,Lnumbers,l,H,i,h,K,Ls,ss;    
+
+Nlist:=proc(n,m)  
+local U,t,U0,u,i,S1,u1;    
+U:={seq([i],i=0..m)}:  for t from 1 to n-1 do    U0:={}:  
+for u in U do  for i from 0 to m-sum(op(j,u),j=1..t) do  
+U0:=U0 union {[op(u),i]}:   od: od: U:=U0; od:    
+S1:={}:   for u1 in U do   if verify(sum(op(j,u1),j=1..n)-m,0,equal)    
+then S1:=S1 union {u1} end if;    od; 
+return S1; end proc:
+
+Lnumbers := proc(v, S) 
+local l, L, A, B, C, i, j; 
+l := nops(S); L := [0, 0, 0]; A := S; B := []; C := []; for i to l do 
+B := [op(B), [op(3, A[i]), op(1, A[i]), op(2, A[i])]]; 
+C := [op(C), [op(2, A[i]), op(3, A[i]), op(1, A[i])]]; 
+end do; for j to l do L := L + v[j]*A[j] + v[j + l]*B[j] + v[j + 2*l]*C[j]; end do; 
+return L; end proc:
+
+l := nops(S); H := {};
+Ls := [0, 0, 0]; K := {};
+for ss in S do
+    if sum(op(j,ss),j=1..3)-2<0  then Ls := Ls; else Ls := Ls + ss; end if;
+end do;
+if Ls = [0, 0, 0] then
+    H := H union Nlist(3*l, 3*k);
+else
+    for i to 3*k do H := H union Nlist(3*l, i); end do;
+end if;
+
+
+for h in H do    
+if Lnumbers(h,S)-[k,k,k]=[0,0,0] then K:=K union {h};   end if; od;   
+return K; end proc:     
+
+Vmonimal:=proc(v,S)  
+local l,i,B,T,j;   global a,b,c;     
+l:=nops(S);   B:=[]:   for i from 1 to l do   
+B:=[op(B),a[op(S[i])]]; od;    for i from 1 to l do   
+B:=[op(B),b[op(3, S[i]),op(1, S[i]),op(2, S[i])]]; od;  for i from 1 to l do   
+B:=[op(B),c[op(2, S[i]),op(3, S[i]),op(1, S[i])]]; od;  T:=1:  
+for j from 1 to 3*l do  T:=T*B[j]^(v[j]); od; 
+return T; end proc:
+
+VNumbers:=proc(v,S) 
+local Lnumbers,Vlistadjust,L1,L2,L3,T, s,H,M,l,j,Y;  global V,z;    
+
+Lnumbers:=proc(v,S)   local l,L, A,B,C,i,j;  
+l:=nops(S);  L:=[0,0,0];  A:=S; B:=[]; C:=[];    
+for i from 1 to l do   B:=[op(B),[op(3,A[i]),op(1,A[i]),op(2,A[i])]];   
+C:=[op(C),[op(2,A[i]),op(3,A[i]),op(1,A[i])]]; od;    for j from 1 to l do  
+L:=L+v[j]*A[j]+v[j+l]*B[j]+v[j+2*l]*C[j]; od;    return L; end proc:
+
+Vlistadjust:=proc(v,S)  
+local Lnumbers,m,t,Vvalue,vv;   global V;    
+
+Lnumbers:=proc(v,S)   local l,L, A,B,C,i,j;  
+l:=nops(S);  L:=[0,0,0];  A:=S; B:=[]; C:=[];    
+for i from 1 to l do   B:=[op(B),[op(3,A[i]),op(1,A[i]),op(2,A[i])]];   
+C:=[op(C),[op(2,A[i]),op(3,A[i]),op(1,A[i])]]; od;    
+for j from 1 to l do  L:=L+v[j]*A[j]+v[j+l]*B[j]+v[j+2*l]*C[j]; od;    
+return L; end proc: 
+
+m:=nops(v);   V[seq(i*0,i=1..m)]:=1;  Vvalue:=1;   
+for vv in v do  if vv<0 then Vvalue:=vv;    end if; od;   
+if Vvalue<0 or op(1, Lnumbers(v,S))+1<0 or op(2, Lnumbers(v,S))+1<0 or op(3, Lnumbers(v,S))+1<0 then V[op(v)]:=0;   
+elif op(1, Lnumbers(v,S))-op(2, Lnumbers(v,S))=0 and op(2, Lnumbers(v,S))-op(3, Lnumbers(v,S))=0 and v<>[seq(i*0,i=1..m)] then V[op(v)]:=0;   
+else V[op(v)]; end if; return V[op(v)]; end proc:     L1:=op(1, Lnumbers(v,S));     L2:=op(2, Lnumbers(v,S));    L3:=op(3, Lnumbers(v,S));  
+T:=0;  l:=nops(S);
+
+if v=[seq(i*0,i=1..3*l)] then return 1;   elif L1-L2=0 and L2-L3=0 and [L1,L2,L3]<>[0,0,0] then return 0; else     
+M:=Matrix(3*l,3*l,shape=identity);  for j from 1 to 3*l do  Y[j]:=convert(M[j],list); od;    for s from 1 to l do  
+H[s]:=v-Y[s]; H[s+l]:=v-Y[s+l]; H[s+2*l]:=v-Y[s+2*l];  
+T:=T+Vlistadjust(H[s],S)*(op(1, Lnumbers(H[s],S))+1)+z*Vlistadjust(H[s+l],S)*(op(2, Lnumbers(H[s+l],S))+1)+z^(2)*Vlistadjust(H[s+2*l],S)*(op(3, Lnumbers(H[s+2*l],S))+1);  od;  end if;   
+return simplify(-1/(L1+z*L2+z^(2)*L3)*T,{1+z+z^(2)},tdeg(z));    end proc:
+
+Gnumbers:=proc(v,S) 
+local Lnumbers,VNumbers,T,M,l,j,H,Q,X,s;   global V,z;    
+
+Lnumbers:=proc(v,S)   local l,L, A,B,C,i,j;  
+l:=nops(S);  L:=[0,0,0];  A:=S; B:=[]; C:=[];    for i from 1 to l do   B:=[op(B),[op(3,A[i]),op(1,A[i]),op(2,A[i])]];   
+C:=[op(C),[op(2,A[i]),op(3,A[i]),op(1,A[i])]]; od;    
+for j from 1 to l do  L:=L+v[j]*A[j]+v[j+l]*B[j]+v[j+2*l]*C[j]; od;    
+return L; end proc:
+
+VNumbers:=proc(v,S) local Lnumbers,Vlistadjust,L1,L2,L3,T, s,H,M,l,j,Y;  global V,z;    
+
+Lnumbers:=proc(v,S)   local l,L, A,B,C,i,j;  
+l:=nops(S);  L:=[0,0,0];  A:=S; B:=[]; C:=[];    for i from 1 to l do   B:=[op(B),[op(3,A[i]),op(1,A[i]),op(2,A[i])]];   
+C:=[op(C),[op(2,A[i]),op(3,A[i]),op(1,A[i])]]; od;    
+for j from 1 to l do  L:=L+v[j]*A[j]+v[j+l]*B[j]+v[j+2*l]*C[j]; od;    
+return L; end proc:
+
+Vlistadjust:=proc(v,S)  local Lnumbers,m,t,Vvalue,vv;   global V;    
+Lnumbers:=proc(v,S)   local l,L, A,B,C,i,j;  l:=nops(S);  L:=[0,0,0];  A:=S; B:=[]; C:=[];    
+for i from 1 to l do   B:=[op(B),[op(3,A[i]),op(1,A[i]),op(2,A[i])]];   C:=[op(C),[op(2,A[i]),op(3,A[i]),op(1,A[i])]]; od;    
+for j from 1 to l do  L:=L+v[j]*A[j]+v[j+l]*B[j]+v[j+2*l]*C[j]; od;    
+return L; end proc:
+
+m:=nops(v);   V[seq(i*0,i=1..m)]:=1;  Vvalue:=1;   for vv in v do  if vv<0 then Vvalue:=vv;    end if; od;   
+if Vvalue<0 or op(1, Lnumbers(v,S))+1<0 or op(2, Lnumbers(v,S))+1<0 or op(3, Lnumbers(v,S))+1<0 then V[op(v)]:=0;   
+elif op(1, Lnumbers(v,S))-op(2, Lnumbers(v,S))=0 and op(2, Lnumbers(v,S))-op(3, Lnumbers(v,S))=0 and v<>[seq(i*0,i=1..m)] then V[op(v)]:=0;   
+else V[op(v)]; end if; return V[op(v)]; end proc:
+
+L1:=op(1, Lnumbers(v,S));     L2:=op(2, Lnumbers(v,S));    L3:=op(3, Lnumbers(v,S));  
+T:=0;  l:=nops(S);    if v=[seq(i*0,i=1..3*l)] then return 1;   elif L1-L2=0 and L2-L3=0 and [L1,L2,L3]<>[0,0,0] then return 0; else     
+M:=Matrix(3*l,3*l,shape=identity);  for j from 1 to 3*l do  Y[j]:=convert(M[j],list); od;
+
+for s from 1 to l do  H[s]:=v-Y[s]; H[s+l]:=v-Y[s+l]; H[s+2*l]:=v-Y[s+2*l];  
+T:=T+Vlistadjust(H[s],S)*(op(1, Lnumbers(H[s],S))+1)+z*Vlistadjust(H[s+l],S)*(op(2, Lnumbers(H[s+l],S))+1)+z^(2)*Vlistadjust(H[s+2*l],S)*(op(3, Lnumbers(H[s+2*l],S))+1);  od;  end if;   
+return simplify(-1/(L1+z*L2+z^(2)*L3)*T,{1+z+z^(2)},tdeg(z));    end proc:
+
+T:=0;  l:=nops(S);  M:=Matrix(3*l,3*l,shape=identity);  for j from 1 to 3*l do  X[j]:=convert(M[j],list); od;    
+for s from 1 to l do  Q[s]:=v-X[s]; Q[s+l]:=v-X[s+l]; Q[s+2*l]:=v-X[s+2*l];  
+T:=T+VNumbers(Q[s],S)*(op(1, Lnumbers(Q[s],S))+1)+z*VNumbers(Q[s+l],S)*(op(2, Lnumbers(Q[s+l],S))+1)+z^(2)*VNumbers(Q[s+2*l],S)*(op(3, Lnumbers(Q[s+2*l],S))+1);  od;   
+return simplify(T,{1+z+z^(2)},tdeg(z));    end proc:
+
+l:=nops(S);  if k-1=0 then A[1]:=Nlist(3*l,1);   for ww in A[1] do  V[op(ww)]:=VNumbers(ww,S); od;   
+else      for i from 3*k-4 to 3*k-2 do   A[i]:=Nlist(3*l,i); od:   for i from 3*k-4 to 3*k-2 do   for ww in A[i] do   V[op(ww)]:=VNumbers(ww,S); od; od;  end if;    
+KK:=ListK(k,S);  Q:=0;    for kk in KK do Q:=Q+Vmonimal(kk,S)*Gnumbers(kk,S); od;  return factor(simplify(Q,{1+z+z^(2)},tdeg(z))); end proc;
+
