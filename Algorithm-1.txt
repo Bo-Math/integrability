@@ -1,0 +1,53 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+Input: An ordered set S with a number k
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+Output: The kth integrability quantity
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+Gpolynomial:=proc(k,S) 
+local Vadjust,Vpolynomial,Alist3,T,r,A,i,ll, s;  
+global v,a,b,c;     
+
+Vadjust:=proc(L) global v;  
+v[0,0,0]:=1; if L[1]+1<0 or L[2]+1<0 or L[3]+1<0 
+then v[op(L)]:=0;   elif L[1]+L[2]+L[3]<=0 and L<>[0,0,0] 
+then v[op(L)]:=0;  else v[op(L)]; end if; 
+return v[op(L)]; end proc:
+
+Vpolynomial := proc(K, S) 
+local Vadjust, T, s; global v, a, b, c; 
+
+Vadjust := proc(L) global v; 
+v[0, 0, 0] := 1; if L[1] < -1 or L[2] < -1 or L[3] < -1 
+then v[op(L)] := 0; elif L[1] + L[2] + L[3] <= 0 and L <> [0, 0, 0] 
+then v[op(L)] := 0; else v[op(L)]; end if; 
+return v[op(L)]; end proc; 
+
+if K[1] - K[2] = 0 and K[2] - K[3] = 0 then 
+return 0; else T := 0; for s in S do 
+T := T + (K[1] + 1 - s[1])*a[op(s)]*Vadjust([K[1] - s[1], K[2] - s[2], K[3] - s[3]]) + z*(K[2] + 1 - s[1])*b[s[3], s[1], s[2]]*Vadjust([K[1] - s[3], K[2] - s[1], K[3] - s[2]]) + z^2*(K[3] + 1 - s[1])*c[s[2], s[3], s[1]]*Vadjust([K[1] - s[2], K[2] - s[3], K[3] - s[1]]); end do; 
+return simplify(-T/(z^2*K[3] + z*K[2] + K[1]), {z^2 + z + 1}); end if; end proc:
+
+Alist3 := proc(m) 
+local U, t, U0, u, i, S1, u1; 
+U := {seq([i], i = 0 .. m)}; 
+for t to 2 do U0 := {}; for u in U do for i from 0 to m - sum(op(j, u), j = 1 .. t) do 
+U0 := U0 union {[op(u), i]}; end do; end do; 
+U := U0; end do; S1 := {}; for u1 in U do 
+if verify(sum(op(j, u1), j = 1 .. 3) - m, 0, equal) then S1 := S1 union {u1 + [-1, -1, -1]}; 
+end if; end do; return S1; end proc:
+
+if k-1=0 then    
+for r from 1 to 2 do   
+A[r]:=Alist3(r+3); od;   for i from 1 to 2 do   
+for ll in A[i] do   v[op(ll)]:=Vpolynomial(ll,S); od; od;   
+else  for r from 3*k-3 to 3*k-1 do   
+A[r]:=Alist3(r+3); od;   
+for i from 3*k-3 to 3*k-1 do   for ll in A[i] do   
+v[op(ll)]:=Vpolynomial(ll,S); od; od; end if;   T:=0;  for s in S do  
+T:=T+(k+1-s[1])*a[op(s)]*Vpolynomial([k-s[1],k-s[2],k-s[3]],S)+z*(k+1-s[1])*b[s[3],s[1],s[2]]*Vpolynomial([k-s[3],k-s[1],k-s[2]],S)+z^(2)*(k+1-s[1])*c[s[2],s[3],s[1]]*Vpolynomial([k-s[2],k-s[3],k-s[1]],S); od;  
+return factor(simplify(T,{1+z+z^(2)}));   end proc;
+
